@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# TODO make some way of having this script communicate with scripts on the backup server to handle compression 
+# TODO make some way of having this script communicate with scripts on the backup server to handle compression
 # and pruning on the local machine rather than over an ssh connection. Do this in a non votile way
 
 # stop on errors
@@ -24,8 +24,8 @@ prune() { \
 	# Check if user specified prune
 	if [ -n "${prune+x}" ]; then
 		message "Pruning files..."
-		# if user is backing up locally and specified some sort of compression 
-		if [ -n "${compress_diff+x}" ] || [ -n "${compress+x}" ] || [ -n "${encryptor_name}" ] && [ -n "${local_backup+x}" ]; then 
+		# if user is backing up locally and specified some sort of compression
+		if [ -n "${compress_diff+x}" ] || [ -n "${compress+x}" ] || [ -n "${encryptor_name}" ] && [ -n "${local_backup+x}" ]; then
 			message "Pruning old files on local ${dst} locally (compressed)"
 			# look for files that end in compression extension or gpg extension and delete of over retention days
 			find "${dst}" -mindepth 1 -maxdepth 2 -name '*.tar.gz' -mtime +${retention} -o -name "*.tar.gz.gpg" -mtime +${retention} -not -path "${dst}/full/*" -exec rm -rfv {} \; 2>&1 | tee -a "$logfile"
@@ -47,7 +47,7 @@ prune() { \
 			remote_command="find ${dst#*:} -mindepth 1 -maxdepth 1 -type d -mtime +${retention} -not -path ${dst#*:}/full | xargs rm -rfv"
 			message "Pruning old files on ${dst%%:*} located at ${dst#*:} (not compressed)"
 			# run the command over ssh
-			ssh "${dst%%:*}" "eval ${remote_command}" 2>&1 | tee -a "$logfile" 
+			ssh "${dst%%:*}" "eval ${remote_command}" 2>&1 | tee -a "$logfile"
 		fi
 	fi ;}
 
@@ -69,7 +69,7 @@ Main actions:
 			NOTE: if local add -m flag!
   -r			remove ALL source files after transfer
   -x			compress entire source folder then sync
-  -l log_dir		folder to keep logs. Default: /tmp/logs					
+  -l log_dir		folder to keep logs. Default: /tmp/logs
   -m 			local backup. Script wont work from local dir to local dir without this set.
 			NOTE: do not have this set when doing remote transfers!
   -z			compress incremental backups need -i as well
@@ -83,7 +83,7 @@ Examples:
 
 	./rwrapper -s src -d fire@7.7.7.7:/home/keeper/backups -p -e fire
 
-Compress and encrypt file, enable pruning and send over to remote host. 
+Compress and encrypt file, enable pruning and send over to remote host.
 (space efficient, less likley to get corrupted data, and secure for off site backups)
 
 	./rwrapper -s src -d fire@7.7.7.7:/home/keeper/backups -px
@@ -92,8 +92,8 @@ Same as above just don't encrypt data at rest (Best for space, less likley to ge
 
 	./rwrapper -s /data/src -d /two/data/dst -irzpm
 
-Rsync files to local directory while keeping compressed incremental backups and removing source files 
-(for local to work -m MUST be specified) 
+Rsync files to local directory while keeping compressed incremental backups and removing source files
+(for local to work -m MUST be specified)
 (Most likley to have corrupted data over a remote connection because tar is being run over ssh)
 
 	./rwrapper -s /data/src -d cool@2.2.2.2:/home/icebox
@@ -134,7 +134,7 @@ esac done
 message "##### Rsync Backup Started ######"
 message "Started at: $(date +%Y-%m-%d-%H%M)"
 
-# check of source and destinations fields are entered 
+# check of source and destinations fields are entered
 # rsync and other programs handle the errors from this point on
 [ -z "$src" ] && message 'Missing source directory (missing flag -s) Exiting ...' >&2 && exit 1
 [ -z "$dst" ] && message 'Missing destination directory (missing flag -d) Exiting ...' >&2 && exit 1
@@ -155,7 +155,7 @@ message "Started at: $(date +%Y-%m-%d-%H%M)"
 OPT="-aPvhiOAXz --delete --stats --exclude='*.incomplete'"
 # if user specifies -r remove source files after transfer successful to destination
 [ -n "${remove+x}" ] && OPT="$OPT --remove-source-files"
-# run in dryrun mode if specified 
+# run in dryrun mode if specified
 [ -n "${dryrun+x}" ] && OPT="$OPT -n"
 # rsync will log to this programs log file
 LOG="--log-file=$logfile"
@@ -168,20 +168,20 @@ BACKUP=""
 RATE=""
 [ -n "${rate_limit}" ] && RATE="--bwlimit=${rate_limit}"
 
-# concatenated rsync command. Notice destination goes to full directory thats so delete doesnt remove our 
+# concatenated rsync command. Notice destination goes to full directory thats so delete doesnt remove our
 # incremental backups or other backups
 command="rsync ${OPT} ${LOG} ${RATE} ${src} ${dst}/full/ ${BACKUP}"
 # Rsync Notes:
 #
 # About checksums (from man page):
-# Note that rsync always verifies that each transferred file was correctly reconstructed on the receiving side 
-# by checking a whole-file checksum that is generated as the file is transferred, but that automatic after-the-transfer 
+# Note that rsync always verifies that each transferred file was correctly reconstructed on the receiving side
+# by checking a whole-file checksum that is generated as the file is transferred, but that automatic after-the-transfer
 # verification has nothing to do with this option's before-the-transfer "Does this file need to be updated?" check.
 #
 # Sync transfer is encrypted as it happens through SSH, unles rsync is daemonized, but thats why this script exists
 
 # Compress entire source directory (-x or -e)
-if [ -n "${compress+x}" ] || [ -n "${encryptor_name+x}" ]; then 
+if [ -n "${compress+x}" ] || [ -n "${encryptor_name+x}" ]; then
 	# backup a directory up from the source directory just to avoid any problems
 	backupfile="${src}../full-backup-$(date +%Y-%m-%d-%H%M).tar.gz"
 	# if a local backup the archive can just be made in the destiantion directory
@@ -248,3 +248,4 @@ end_backup
 # 1. Be on machine that has the key that matches the name you used to encrypt
 # 2. run: gpg -d --output <outfile> <infile>
 # This will decrypt with the private key as we encrypt with the public key
+# To make gpg key run gpg --full-generate-key
